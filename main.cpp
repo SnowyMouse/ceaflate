@@ -142,22 +142,9 @@ static_assert(sizeof(CacheFileHeader) == 0x800);
 
 static int compress_file(const char *input_file, const char *output_file) {
     // Read the file
-    auto uncompressed_file = read_file(input_file, sizeof(CacheFileHeader));
+    auto uncompressed_file = read_file(input_file, 0);
     auto file_size = uncompressed_file.size();
     std::size_t block_count = file_size / CHUNK_SIZE + ((file_size % CHUNK_SIZE) > 0);
-    auto &cache_file_header = *reinterpret_cast<CacheFileHeader *>(uncompressed_file.data());
-    if(cache_file_header.head_literal != 0x68656164 || cache_file_header.foot_literal != 0x666F6F74 || cache_file_header.engine != 7) {
-        std::fprintf(stderr, ERROR "%s isn't a Halo: CE Anniversary map file, or it is too corrupt\n", input_file);
-        return EXIT_FAILURE;
-    }
-    if(cache_file_header.tag_data_offset + sizeof(std::uint32_t) > file_size) {
-        std::fprintf(stderr, ERROR "%s isn't a Halo: CE Anniversary map file, or it is too corrupt\n", input_file);
-        return EXIT_FAILURE;
-    }
-    if(*reinterpret_cast<std::uint32_t *>(uncompressed_file.data() + cache_file_header.tag_data_offset) != 0x40448028) {
-        std::fprintf(stderr, ERROR "%s isn't a Halo: CE Anniversary map file, or it is too corrupt\n", input_file);
-        return EXIT_FAILURE;
-    }
 
     // Make a header
     std::vector<std::byte> header(sizeof(CompressedMapHeader));
